@@ -180,11 +180,12 @@ async def create_chat_completion(request: ChatCompletionRequest):
     )
     temp = response["usage"]
     logger.debug(f"==== usage ====\n{temp}")
-    return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=UsageInfo(prompt_tokens=1, total_tokens=1, completion_tokens=1))
+    # return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=UsageInfo(prompt_tokens=1, total_tokens=1, completion_tokens=1))
     # task_usage = UsageInfo.model_validate(response["usage"])
-    # for usage_key, usage_value in task_usage.model_dump().items():
-    #     setattr(usage, usage_key, getattr(usage, usage_key) + usage_value)
-    # return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=usage)
+    task_usage = UsageInfo(prompt_tokens=response["usage"]["prompt_tokens"], total_tokens=response["usage"]["total_tokens"], completion_tokens=response["usage"]["completion_tokens"])
+    for usage_key, usage_value in task_usage.model_dump().items():
+        setattr(usage, usage_key, getattr(usage, usage_key) + usage_value)
+    return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=usage)
 
 
 async def predict(model_id: str, params: dict):
