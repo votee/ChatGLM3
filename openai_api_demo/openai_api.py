@@ -238,7 +238,8 @@ async def predict(model_id: str, params: dict):
         finish_reason="stop"
     )
     chunk = ChatCompletionResponse(model=model_id, choices=[choice_data], object="chat.completion.chunk")
-    yield "{}".format(chunk.model_dump_json(exclude_unset=True))
+    # yield "{}".format(chunk.model_dump_json(exclude_unset=True))
+    yield "{}".format(chunk.json(exclude_unset=True))
     yield '[DONE]'
 
 
