@@ -178,10 +178,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
         message=message,
         finish_reason=finish_reason,
     )
-    task_usage = UsageInfo.model_validate(response["usage"])
-    for usage_key, usage_value in task_usage.model_dump().items():
-        setattr(usage, usage_key, getattr(usage, usage_key) + usage_value)
-    return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=usage)
+    return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=None)
+    # task_usage = UsageInfo.model_validate(response["usage"])
+    # for usage_key, usage_value in task_usage.model_dump().items():
+    #     setattr(usage, usage_key, getattr(usage, usage_key) + usage_value)
+    # return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=usage)
 
 
 async def predict(model_id: str, params: dict):
