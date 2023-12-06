@@ -178,6 +178,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
         message=message,
         finish_reason=finish_reason,
     )
+    print(response["usage"])
     return ChatCompletionResponse(model=request.model, choices=[choice_data], object="chat.completion", usage=UsageInfo(prompt_tokens=1, total_tokens=1, completion_tokens=1))
     # task_usage = UsageInfo.model_validate(response["usage"])
     # for usage_key, usage_value in task_usage.model_dump().items():
