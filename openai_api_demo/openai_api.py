@@ -280,6 +280,7 @@ def get_glm_embedding(text, device="cuda"):
 async def create_embeddings(
     # _: Annotated[str, Depends(api_key_header)], 
     # text: Annotated[str, Body(embed=True)] = None
+    model: str,
     input: List[str] = Body(..., embed=True)
 ):
     embedding_obj = get_glm_embedding(input)
