@@ -261,7 +261,7 @@ def get_glm_embedding(text, device="cuda"):
     # inputs = tokenizer([text], return_tensors="pt").to(device)
     # print(f"text:{text}", flush=True)
     logger.debug(f"==== embedding text ====\n{text}")
-    encoded_input = tokenizer_embedding(text, padding=True, truncation=True, return_tensors="pt").to(device)
+    encoded_input = tokenizer_embedding([text], padding=True, truncation=True, return_tensors="pt").to(device)
     # resp = model.transformer(**inputs, output_hidden_states=True)
     # y = resp.last_hidden_state
     # y_mean = torch.mean(y, dim=0, keepdim=True)
@@ -279,9 +279,9 @@ def get_glm_embedding(text, device="cuda"):
 @app.post("/v1/embeddings")
 async def create_embeddings(
     # _: Annotated[str, Depends(api_key_header)], 
-    input: Annotated[[str], Body(embed=True)] = None
+    text: Annotated[str, Body(embed=True)] = None
 ):
-    embedding_obj = get_glm_embedding(input)
+    embedding_obj = get_glm_embedding(text)
     embedding_list = embedding_obj.tolist()
     return_dict = {"data": {"embedding": [embedding_list]}}
     json_dict = json.dumps(return_dict)
