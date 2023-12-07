@@ -22,6 +22,7 @@ from sse_starlette.sse import EventSourceResponse
 from transformers import AutoTokenizer, AutoModel, BertTokenizer, BertModel
 from typing_extensions import Annotated
 from fastapi.security import APIKeyHeader
+from openai_api_demo.schema import EmbeddingUsage, EmbeddingData, EmbeddingResponse
 
 from utils import process_response, generate_chatglm3, generate_stream_chatglm3
 
@@ -276,26 +277,28 @@ def get_glm_embedding(text, device="cuda"):
     return sentence_embeddings
   
   
-@app.post("/v1/embeddings")
+@app.post("/v1/embeddings", response_model=EmbeddingResponse)
 async def create_embeddings(
     # _: Annotated[str, Depends(api_key_header)], 
     # text: Annotated[str, Body(embed=True)] = None
     model: str | None = None,
     input: List[str] = Body(..., embed=True)
-):
+) -> EmbeddingResponse:
     embedding_obj = get_glm_embedding(input)
     embedding_list = embedding_obj.tolist()
     output_item = []
     for index, embedding_item in enumerate(embedding_list):
-        output_item.append({
-            "embedding": embedding_item,
-            "index": index,
-            "object": "embedding"
-        })
-    return_dict = {"data": output_item, "model": "text-embedding-ada-002", "object": "list", "usage": {"prompt_tokens": 1, "total_tokens": 1}}
-    json_dict = json.dumps(return_dict)
-    # print(f"create_embeddings json_str={json_str}", flush=True)
-    return json_dict
+        # output_item.append({
+        #     "embedding": embedding_item,
+        #     "index": index,
+        #     "object": "embedding"
+        # })
+        output_item.append(EmbeddingData(embedding=embedding_item, index=index, object="embedding"))
+    return EmbeddingResponse(data=output_item, model="text-embedding-ada-002", object="list", usage=EmbeddingUsage(prompt_tokens=1, total_tokens=1))
+    # return_dict = {"data": output_item, "model": "text-embedding-ada-002", "object": "list", "usage": {"prompt_tokens": 1, "total_tokens": 1}}
+    # json_dict = json.dumps(return_dict)
+    # # print(f"create_embeddings json_str={json_str}", flush=True)
+    # return json_dict
 
 
 if __name__ == "__main__":
