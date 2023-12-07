@@ -284,7 +284,7 @@ async def create_embeddings(
 ):
     embedding_obj = get_glm_embedding(input)
     embedding_list = embedding_obj.tolist()
-    return_dict = {"data": {"embedding": [embedding_list]}}
+    return_dict = {"data": {"embedding": [embedding_list]}, "model": "text-embedding-ada-002", "object": "list", "usage": {"prompt_tokens": 1, "total_tokens": 1}}
     json_dict = json.dumps(return_dict)
     # print(f"create_embeddings json_str={json_str}", flush=True)
     return json_dict
