@@ -13,12 +13,14 @@ from typing import List, Literal, Optional, Union
 
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, BertTokenizer, BertModel
+from typing_extensions import Annotated
+from fastapi.security import APIKeyHeader
 
 from utils import process_response, generate_chatglm3, generate_stream_chatglm3
 
@@ -26,6 +28,7 @@ MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+api_key_header = APIKeyHeader(name="Authorization")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # collects GPU memory
@@ -244,6 +247,40 @@ async def predict(model_id: str, params: dict):
     # yield "{}".format(chunk.model_dump_json(exclude_unset=True))
     yield "{}".format(chunk.json(exclude_unset=True))
     yield '[DONE]'
+    
+def mean_pooling(model_output, attention_mask):
+    token_embeddings = model_output[0]  # First element of model_output contains all token embeddings
+    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+    return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+
+
+def get_glm_embedding(text, device="cuda"):
+    global model_embedding, tokenizer_embedding
+    
+    # inputs = tokenizer([text], return_tensors="pt").to(device)
+    encoded_input = tokenizer_embedding([text], padding=True, truncation=True, return_tensors="pt").to(device)
+    # resp = model.transformer(**inputs, output_hidden_states=True)
+    # y = resp.last_hidden_state
+    # y_mean = torch.mean(y, dim=0, keepdim=True)
+    # result = y_mean.cpu().detach().numpy()
+    # return result
+    with torch.no_grad():
+        model_output = model_embedding(**encoded_input)
+        # Perform pooling. In this case, mean pooling.
+    sentence_embeddings = mean_pooling(model_output, encoded_input['attention_mask'])
+    print("Sentence embeddings:", flush=True)
+    print(sentence_embeddings, flush=True)
+    return sentence_embeddings
+  
+  
+@app.post("/v1/embeddings")
+async def create_embeddings(_: Annotated[str, Depends(api_key_header)], text: Annotated[str, Body(embed=True)] = None):
+    embedding_obj = get_glm_embedding(text)
+    embedding_list = embedding_obj.tolist()
+    return_dict = {"data": {"embedding": [embedding_list]}}
+    json_dict = json.dumps(return_dict)
+    # print(f"create_embeddings json_str={json_str}", flush=True)
+    return json_dict
 
 
 if __name__ == "__main__":
@@ -253,4 +290,6 @@ if __name__ == "__main__":
         model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).to(DEVICE).eval()
     else:  # CPU, Intel GPU and other GPU can use Float16 Precision Only
         model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).float().to(DEVICE).eval()
+    tokenizer_embedding = BertTokenizer.from_pretrained("./text2vec-large-chinese/vocab.txt", trust_remote_code=True,local_files_only=True)
+    model_embedding = BertModel.from_pretrained("./text2vec-large-chinese/pytorch_model.bin",config='./text2vec-large-chinese/config.json', trust_remote_code=True, local_files_only=True).cuda()
     uvicorn.run(app, host='0.0.0.0', port=8000, workers=1)
