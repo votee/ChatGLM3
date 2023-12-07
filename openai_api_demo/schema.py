@@ -14,4 +14,5 @@ class EmbeddingResponse(BaseModel):
     data: List[EmbeddingData]
     model: str
     object: str
+    usage: EmbeddingUsage
     
