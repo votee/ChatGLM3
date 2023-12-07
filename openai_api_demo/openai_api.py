@@ -274,7 +274,10 @@ def get_glm_embedding(text, device="cuda"):
   
   
 @app.post("/v1/embeddings")
-async def create_embeddings(_: Annotated[str, Depends(api_key_header)], text: Annotated[str, Body(embed=True)] = None):
+async def create_embeddings(
+    # _: Annotated[str, Depends(api_key_header)], 
+    text: Annotated[str, Body(embed=True)] = None
+):
     embedding_obj = get_glm_embedding(text)
     embedding_list = embedding_obj.tolist()
     return_dict = {"data": {"embedding": [embedding_list]}}
@@ -290,6 +293,6 @@ if __name__ == "__main__":
         model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).to(DEVICE).eval()
     else:  # CPU, Intel GPU and other GPU can use Float16 Precision Only
         model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).float().to(DEVICE).eval()
-    tokenizer_embedding = BertTokenizer.from_pretrained("../text2vec-large-chinese/vocab.txt", trust_remote_code=True,local_files_only=True)
+    tokenizer_embedding = BertTokenizer.from_pretrained("./text2vec-large-chinese/vocab.txt", trust_remote_code=True,local_files_only=True)
     model_embedding = BertModel.from_pretrained("./text2vec-large-chinese/pytorch_model.bin",config='./text2vec-large-chinese/config.json', trust_remote_code=True, local_files_only=True).cuda()
     uvicorn.run(app, host='0.0.0.0', port=8000, workers=1)
