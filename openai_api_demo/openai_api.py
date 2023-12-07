@@ -290,6 +290,6 @@ if __name__ == "__main__":
         model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).to(DEVICE).eval()
     else:  # CPU, Intel GPU and other GPU can use Float16 Precision Only
         model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).float().to(DEVICE).eval()
-    tokenizer_embedding = BertTokenizer.from_pretrained("./text2vec-large-chinese/vocab.txt", trust_remote_code=True,local_files_only=True)
+    tokenizer_embedding = BertTokenizer.from_pretrained("../text2vec-large-chinese/vocab.txt", trust_remote_code=True,local_files_only=True)
     model_embedding = BertModel.from_pretrained("./text2vec-large-chinese/pytorch_model.bin",config='./text2vec-large-chinese/config.json', trust_remote_code=True, local_files_only=True).cuda()
     uvicorn.run(app, host='0.0.0.0', port=8000, workers=1)
