@@ -259,6 +259,7 @@ def get_glm_embedding(text, device="cuda"):
     global model_embedding, tokenizer_embedding
     
     # inputs = tokenizer([text], return_tensors="pt").to(device)
+    print(f"text:{text}", flush=True)
     encoded_input = tokenizer_embedding([text], padding=True, truncation=True, return_tensors="pt").to(device)
     # resp = model.transformer(**inputs, output_hidden_states=True)
     # y = resp.last_hidden_state
