@@ -255,7 +255,7 @@ def mean_pooling(model_output, attention_mask):
     return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
 
 
-def get_glm_embedding(text, device="cuda"):
+def get_glm_embedding(text: List[str], device="cuda"):
     global model_embedding, tokenizer_embedding
     
     # inputs = tokenizer([text], return_tensors="pt").to(device)
