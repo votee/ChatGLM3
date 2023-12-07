@@ -22,7 +22,7 @@ from sse_starlette.sse import EventSourceResponse
 from transformers import AutoTokenizer, AutoModel, BertTokenizer, BertModel
 from typing_extensions import Annotated
 from fastapi.security import APIKeyHeader
-from openai_api_demo.schema import EmbeddingUsage, EmbeddingData, EmbeddingResponse
+from schema import EmbeddingUsage, EmbeddingData, EmbeddingResponse
 
 from utils import process_response, generate_chatglm3, generate_stream_chatglm3
 
