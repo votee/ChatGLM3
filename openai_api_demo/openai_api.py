@@ -279,7 +279,7 @@ def get_glm_embedding(text, device="cuda"):
 @app.post("/v1/embeddings")
 async def create_embeddings(
     # _: Annotated[str, Depends(api_key_header)], 
-    input: Annotated[List[str], Body(embed=True)] = None
+    input: List[str]
 ):
     embedding_obj = get_glm_embedding(input)
     embedding_list = embedding_obj.tolist()
