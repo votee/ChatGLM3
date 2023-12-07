@@ -22,6 +22,7 @@ from sse_starlette.sse import EventSourceResponse
 from transformers import AutoTokenizer, AutoModel, BertTokenizer, BertModel
 from typing_extensions import Annotated
 from fastapi.security import APIKeyHeader
+import logging
 
 from utils import process_response, generate_chatglm3, generate_stream_chatglm3
 
@@ -30,6 +31,7 @@ TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 api_key_header = APIKeyHeader(name="Authorization")
+logger = logging.getLogger('test-logger')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # collects GPU memory
@@ -259,7 +261,8 @@ def get_glm_embedding(text, device="cuda"):
     global model_embedding, tokenizer_embedding
     
     # inputs = tokenizer([text], return_tensors="pt").to(device)
-    print(f"text:{text}", flush=True)
+    # print(f"text:{text}", flush=True)
+    logger.debug(f"text:{text}")
     encoded_input = tokenizer_embedding([text], padding=True, truncation=True, return_tensors="pt").to(device)
     # resp = model.transformer(**inputs, output_hidden_states=True)
     # y = resp.last_hidden_state
